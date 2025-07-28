@@ -31,5 +31,11 @@ coverage/
 .DS_Store
 Thumbs.db
 
+# Database
+*.db
+*.sqlite
+dev.db
+
 # Prisma
-migrations/
+prisma/migrations/
+!prisma/migrations/.gitkeep
