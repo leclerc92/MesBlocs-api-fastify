@@ -11,8 +11,6 @@ export async function sessionRoutes(fastify: FastifyInstance) {
             querystring: {
                 type: 'object',
                 properties: {
-                    page: { type: 'number', default: 1 },
-                    limit: { type: 'number', default: 10 },
                     dateFrom: { type: 'string', format: 'date' },
                     dateTo: { type: 'string', format: 'date' }
                 }

@@ -11,8 +11,6 @@ export async function blocRoutes(fastify: FastifyInstance) {
             querystring: {
                 type: 'object',
                 properties: {
-                    page: { type: 'number', default: 1 },
-                    limit: { type: 'number', default: 10 },
                     sessionId: { type: 'number' },
                     difficulty: { type: 'number' },
                     style: { type: 'string' }
