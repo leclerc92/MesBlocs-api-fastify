@@ -16,7 +16,7 @@ fi
 # Variables
 USER="michel"
 APP_DIR="/opt/back"
-REPO_DIR="$APP_DIR/mesBlocs-api-fastify"
+REPO_DIR="$APP_DIR/MesBlocs-api-fastify"
 SERVICE_NAME="fastifyapi"
 
 echo "📁 Création de la structure des dossiers..."
@@ -31,7 +31,7 @@ if [ -d "$REPO_DIR" ]; then
 else
     cd $APP_DIR
     # Remplace par l'URL de ton repository
-    sudo -u $USER git clone https://github.com/ton-username/mesBlocs-api-fastify.git
+    sudo -u $USER git clone https://github.com/ton-username/MesBlocs-api-fastify.git
     cd $REPO_DIR
 fi
 
