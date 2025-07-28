@@ -1,0 +1,87 @@
+name: Deploy Fastify API to Raspberry Pi
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Update application code
+        run: |
+          cd /opt/back/mesBlocs-api-fastify
+          git pull origin main
+          echo "✅ Backend code updated"
+
+      - name: Setup Node.js environment
+        run: |
+          export PATH=/opt/nodejs/bin:$PATH
+          node -v
+          npm -v
+
+      - name: Install dependencies
+        run: |
+          cd /opt/back/mesBlocs-api-fastify
+          export PATH=/opt/nodejs/bin:$PATH
+          npm ci
+          echo "✅ Dependencies installed"
+
+      - name: Generate Prisma client
+        run: |
+          cd /opt/back/mesBlocs-api-fastify
+          export PATH=/opt/nodejs/bin:$PATH
+          npm run db:generate
+          echo "✅ Prisma client generated"
+
+      - name: Run database migrations
+        run: |
+          cd /opt/back/mesBlocs-api-fastify
+          export PATH=/opt/nodejs/bin:$PATH
+          npm run db:push
+          echo "✅ Database migrations applied"
+
+      - name: Build TypeScript application
+        run: |
+          cd /opt/back/mesBlocs-api-fastify
+          export PATH=/opt/nodejs/bin:$PATH
+          
+          # Build pour production
+          npm run build
+          
+          echo "✅ TypeScript build completed"
+          echo "📦 Build size:"
+          du -sh dist/
+          ls -la dist/
+
+      - name: Deploy backend API
+        run: |
+          # Redémarrer le service API
+          sudo systemctl restart fastifyapi
+          echo "✅ Backend API service restarted"
+
+      - name: Verify deployment
+        run: |
+          echo "⏳ Waiting for API to start..."
+          sleep 15
+          
+          # Test que l'API répond
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/sessions || echo "000")
+          
+          if [[ "$HTTP_CODE" =~ ^(200|403|405)$ ]]; then
+            echo "✅ Backend API deployment successful!"
+            echo "🔌 API: HTTP $HTTP_CODE"
+            echo ""
+            echo "🚀 Application URLs:"
+            echo "  API: http://mesblocs-api:8080/api/"
+            echo "  Health check: HTTP $HTTP_CODE"
+          else
+            echo "❌ Backend API deployment failed!"
+            echo "API: HTTP $HTTP_CODE (should be 200/403/405)"
+          
+            sudo systemctl status fastifyapi --no-pager
+            sudo journalctl -u fastifyapi -n 10 --no-pager
+            exit 1
+          fi
