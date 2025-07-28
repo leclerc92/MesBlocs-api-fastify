@@ -48,6 +48,7 @@ fastify.register(blocRoutes)
 
 const start = async () => {
     try {
+        console.log("BONJOUR !!!")
         const port = parseInt(process.env.PORT || '3001')
         const host = process.env.HOST || 'localhost'
 
