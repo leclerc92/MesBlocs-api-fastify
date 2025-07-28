@@ -36,10 +36,18 @@ jobs:
           npm run db:generate
           echo "✅ Prisma client generated"
 
-      - name: Run database migrations
+      - name: Backup and run database migrations
         run: |
           cd /opt/back/MesBlocs-api-fastify
           export PATH=/opt/nodejs/bin:$PATH
+          
+          # Backup de la base existante
+          if [ -f "prisma/dev.db" ]; then
+            cp prisma/dev.db prisma/dev.db.backup-$(date +%Y%m%d-%H%M%S)
+            echo "✅ Database backup created"
+          fi
+          
+          # Appliquer les migrations sans écraser les données
           npm run db:push
           echo "✅ Database migrations applied"
 
