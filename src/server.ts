@@ -37,10 +37,10 @@ fastify.get('/health', async () => {
     return { status: 'OK', timestamp: new Date().toISOString() }
 })
 
-// Enregistrer les routes avec préfixe API
-fastify.register(userRoutes, { prefix: '/api' })
-fastify.register(sessionRoutes, { prefix: '/api' })
-fastify.register(blocRoutes, { prefix: '/api' })
+// Enregistrer les routes (elles ont déjà le préfixe /api)
+fastify.register(userRoutes)
+fastify.register(sessionRoutes)
+fastify.register(blocRoutes)
 
 // ========================================
 // DÉMARRAGE SERVEUR
