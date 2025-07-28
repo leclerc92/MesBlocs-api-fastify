@@ -49,7 +49,7 @@ fastify.register(blocRoutes)
 const start = async () => {
     try {
         const port = parseInt(process.env.PORT || '3001')
-        const host = process.env.HOST || 'localhost'
+        const host = process.env.HOST || '0.0.0.0'
 
         await fastify.listen({ port, host })
         console.log(`🚀 Serveur démarré sur http://${host}:${port}`)
