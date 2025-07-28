@@ -37,10 +37,10 @@ fastify.get('/health', async () => {
     return { status: 'OK', timestamp: new Date().toISOString() }
 })
 
-// Enregistrer les routes
-fastify.register(userRoutes)
-fastify.register(sessionRoutes)
-fastify.register(blocRoutes)
+// Enregistrer les routes avec préfixe API
+fastify.register(userRoutes, { prefix: '/api' })
+fastify.register(sessionRoutes, { prefix: '/api' })
+fastify.register(blocRoutes, { prefix: '/api' })
 
 // ========================================
 // DÉMARRAGE SERVEUR
@@ -49,8 +49,8 @@ fastify.register(blocRoutes)
 const start = async () => {
     try {
         console.log("BONJOUR !!!")
-        const port = parseInt(process.env.PORT || '3001')
-        const host = process.env.HOST || 'localhost'
+        const port = parseInt(process.env.PORT || '8080')
+        const host = process.env.HOST || '0.0.0.0'
 
         await fastify.listen({ port, host })
         console.log(`🚀 Serveur démarré sur http://${host}:${port}`)
