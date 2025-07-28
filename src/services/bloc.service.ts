@@ -1,5 +1,5 @@
 import {PrismaClient} from "@prisma/client";
-import {BlocQuery, CreateBlocInput, UpdateBlocInput, BlocResponse, BlocStats} from "../models/bloc.model";
+import {BlocQuery, CreateBlocInput, UpdateBlocInput, BlocResponse} from "../models/bloc.model";
 
 export class BlocService {
     constructor(private prisma: PrismaClient) {
@@ -43,13 +43,17 @@ export class BlocService {
         ])
 
         return {
-            blocs,
+            data: blocs.map(bloc => ({
+                ...bloc,
+                score: this.calculBlocScore(bloc)
+            })),
+
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
         }
     }
 
     async getBlocById(id: number): Promise<BlocResponse | null> {
-        return await this.prisma.bloc.findUnique({
+        const bloc = await this.prisma.bloc.findUnique({
             where: { id },
             select: {
                 id: true,
@@ -61,6 +65,14 @@ export class BlocService {
                 createdAt: true
             }
         })
+
+        if (!bloc) {
+            return null
+        }
+        return {
+            ...bloc,
+            score: this.calculBlocScore(bloc)
+        };
     }
 
     async createBloc(blocData: CreateBlocInput): Promise<BlocResponse> {
@@ -128,45 +140,12 @@ export class BlocService {
         }
     }
 
-    async getBlocStats(): Promise<BlocStats> {
-        const allBlocs = await this.prisma.bloc.findMany({
-            select: {
-                difficulty: true,
-                style: true,
-                retry: true,
-                terminate: true
-            }
-        })
+    calculBlocScore(bloc: BlocResponse) {
+        const { difficulty, style, retry, terminate } = bloc
+        const tryFacteur:number = retry === 0 ? 1 : retry;
+        const typeFacteur:number = style === "DE" ? 1.2 : 1;
+        const terminateFacteur:number  =terminate ? 1.1 : 1;
 
-        const total = allBlocs.length
-        
-        // Statistiques par difficulté
-        const byDifficulty: Record<number, number> = {}
-        allBlocs.forEach(bloc => {
-            byDifficulty[bloc.difficulty] = (byDifficulty[bloc.difficulty] || 0) + 1
-        })
-
-        // Statistiques par style
-        const byStyle: Record<string, number> = {}
-        allBlocs.forEach(bloc => {
-            byStyle[bloc.style] = (byStyle[bloc.style] || 0) + 1
-        })
-
-        // Moyenne des retry
-        const avgRetry = total > 0 
-            ? allBlocs.reduce((sum, bloc) => sum + bloc.retry, 0) / total 
-            : 0
-
-        // Taux de terminate
-        const terminateCount = allBlocs.filter(bloc => bloc.terminate).length
-        const terminateRate = total > 0 ? (terminateCount / total) * 100 : 0
-
-        return {
-            total,
-            byDifficulty,
-            byStyle,
-            avgRetry: Math.round(avgRetry * 100) / 100, // 2 décimales
-            terminateRate: Math.round(terminateRate * 100) / 100 // 2 décimales
-        }
+        return difficulty * 2 * (1 + 0.7 / tryFacteur) * typeFacteur * terminateFacteur;
     }
 }

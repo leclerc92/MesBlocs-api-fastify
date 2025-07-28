@@ -21,6 +21,7 @@ export interface BlocResponse {
     retry: number
     terminate: boolean
     createdAt: Date
+    score?:number
 }
 
 export interface BlocQuery {

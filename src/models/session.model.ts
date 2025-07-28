@@ -1,5 +1,6 @@
 
 import { BlocResponse } from './bloc.model'
+import {SessionPerformance} from "./sessionPerformance.model";
 
 export interface CreateSessionInput {
     date: Date
@@ -14,6 +15,7 @@ export interface SessionResponse {
     date: Date
     createdAt: Date
     blocs?: BlocResponse[]
+    sessionPerformance?: SessionPerformance
 }
 
 export interface SessionQuery {

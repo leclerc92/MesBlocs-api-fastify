@@ -21,7 +21,7 @@ export async function blocRoutes(fastify: FastifyInstance) {
         }
     }, async (request, reply) => {
         try {
-            const result = await blocService.getAllBlocs(request.query as BlocQuery)
+            const result = await blocService.getAllBlocs(request.query as BlocQuery);
             return result
         } catch (error: any) {
             fastify.log.error(error)
@@ -132,14 +132,4 @@ export async function blocRoutes(fastify: FastifyInstance) {
         }
     })
 
-    // GET /api/blocs/stats - Statistiques des blocs
-    fastify.get('/api/blocs/stats', async (request, reply) => {
-        try {
-            const stats = await blocService.getBlocStats()
-            return stats
-        } catch (error: any) {
-            fastify.log.error(error)
-            return reply.code(500).send({ error: 'Erreur serveur' })
-        }
-    })
 }
