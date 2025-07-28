@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Update application code
         run: |
-          cd /opt/back/mesBlocs-api-fastify
+          cd /opt/back/MesBlocs-api-fastify
           git pull origin main
           echo "✅ Backend code updated"
 
