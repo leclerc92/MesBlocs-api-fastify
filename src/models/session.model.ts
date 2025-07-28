@@ -1,5 +1,5 @@
 
-import { BlocResponse } from './bloc.model'
+import {BlocResponseDb} from './bloc.model'
 import {SessionPerformance} from "./sessionPerformance.model";
 
 export interface CreateSessionInput {
@@ -10,12 +10,17 @@ export interface UpdateSessionInput {
     date?: Date
 }
 
-export interface SessionResponse {
+export interface SessionResponseBd {
     id: number
     date: Date
     createdAt: Date
-    blocs?: BlocResponse[]
-    sessionPerformance?: SessionPerformance
+    blocs?: BlocResponseDb[]
+}
+
+export interface SessionDto {
+    id: number
+    date: Date
+    sessionPerformance?: SessionPerformance;
 }
 
 export interface SessionQuery {

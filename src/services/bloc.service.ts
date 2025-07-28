@@ -1,5 +1,5 @@
 import {PrismaClient} from "@prisma/client";
-import {BlocQuery, CreateBlocInput, UpdateBlocInput, BlocResponse} from "../models/bloc.model";
+import {BlocQuery, CreateBlocInput, UpdateBlocInput, BlocResponseDb, BlocDto} from "../models/bloc.model";
 
 export class BlocService {
     constructor(private prisma: PrismaClient) {
@@ -43,16 +43,12 @@ export class BlocService {
         ])
 
         return {
-            data: blocs.map(bloc => ({
-                ...bloc,
-                score: this.calculBlocScore(bloc)
-            })),
-
+            data: this.convertBlocsToDto(blocs),
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
         }
     }
 
-    async getBlocById(id: number): Promise<BlocResponse | null> {
+    async getBlocById(id: number): Promise<BlocDto | null> {
         const bloc = await this.prisma.bloc.findUnique({
             where: { id },
             select: {
@@ -69,13 +65,10 @@ export class BlocService {
         if (!bloc) {
             return null
         }
-        return {
-            ...bloc,
-            score: this.calculBlocScore(bloc)
-        };
+        return this.convertBlocToDto(bloc);
     }
 
-    async createBloc(blocData: CreateBlocInput): Promise<BlocResponse> {
+    async createBloc(blocData: CreateBlocInput): Promise<BlocDto> {
         // Vérifier que la session existe
         const session = await this.prisma.session.findUnique({
             where: { id: blocData.sessionId }
@@ -85,7 +78,7 @@ export class BlocService {
             throw new Error('Session non trouvée')
         }
 
-        return await this.prisma.bloc.create({
+        const bloc =  await this.prisma.bloc.create({
             data: {
                 sessionId: blocData.sessionId,
                 difficulty: blocData.difficulty,
@@ -103,11 +96,13 @@ export class BlocService {
                 createdAt: true
             }
         })
+
+        return this.convertBlocToDto(bloc);
     }
 
-    async updateBloc(id: number, blocData: UpdateBlocInput): Promise<BlocResponse | null> {
+    async updateBloc(id: number, blocData: UpdateBlocInput): Promise<BlocDto | null> {
         try {
-            return await this.prisma.bloc.update({
+            const bloc =  await this.prisma.bloc.update({
                 where: { id },
                 data: blocData,
                 select: {
@@ -120,6 +115,11 @@ export class BlocService {
                     createdAt: true
                 }
             })
+            if (!bloc) {
+                return null
+            }
+            return this.convertBlocToDto(bloc);
+
         } catch (error: any) {
             if (error.code === 'P2025') {
                 return null
@@ -140,7 +140,21 @@ export class BlocService {
         }
     }
 
-    calculBlocScore(bloc: BlocResponse) {
+    convertBlocsToDto(blocs: BlocResponseDb[]): BlocDto[] {
+        return blocs.map(bloc => ({
+            ...bloc,
+            score: BlocService.calculBlocScore(bloc)
+        }))
+    }
+
+    convertBlocToDto(bloc:BlocResponseDb): BlocDto {
+        return {
+            ...bloc,
+            score: BlocService.calculBlocScore(bloc)
+        }
+    }
+
+    static calculBlocScore(bloc: BlocResponseDb) : number {
         const { difficulty, style, retry, terminate } = bloc
         const tryFacteur:number = retry === 0 ? 1 : retry;
         const typeFacteur:number = style === "DE" ? 1.2 : 1;

@@ -13,7 +13,7 @@ export interface UpdateBlocInput {
     terminate?: boolean
 }
 
-export interface BlocResponse {
+export interface BlocResponseDb {
     id: number
     sessionId: number
     difficulty: number
@@ -21,7 +21,10 @@ export interface BlocResponse {
     retry: number
     terminate: boolean
     createdAt: Date
-    score?:number
+}
+
+export interface BlocDto extends BlocResponseDb {
+    score: number
 }
 
 export interface BlocQuery {
@@ -30,12 +33,4 @@ export interface BlocQuery {
     sessionId?: number
     difficulty?: number
     style?: string
-}
-
-export interface BlocStats {
-    total: number
-    byDifficulty: Record<number, number>
-    byStyle: Record<string, number>
-    avgRetry: number
-    terminateRate: number
 }

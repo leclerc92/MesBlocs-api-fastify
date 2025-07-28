@@ -1,5 +1,15 @@
 import { PrismaClient } from "@prisma/client";
-import { SessionQuery, CreateSessionInput, UpdateSessionInput, SessionResponse, SessionStats } from "../models/session.model";
+import {
+    SessionQuery,
+    CreateSessionInput,
+    UpdateSessionInput,
+    SessionResponseBd,
+    SessionStats,
+    SessionDto
+} from "../models/session.model";
+import {SessionPerformance} from "../models/sessionPerformance.model";
+import {BlocDto, BlocResponseDb} from "../models/bloc.model";
+import {BlocService} from "./bloc.service";
 
 export class SessionService {
     constructor(private prisma: PrismaClient) {}
@@ -29,9 +39,7 @@ export class SessionService {
                     id: true,
                     date: true,
                     createdAt: true,
-                    _count: {
-                        select: { blocs: true }
-                    }
+                    blocs: true,
                 },
                 orderBy: { date: 'desc' }
             }),
@@ -39,37 +47,28 @@ export class SessionService {
         ])
 
         return {
-            sessions,
+            data : this.convertSessionsToDto(sessions),
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
         }
     }
 
-    async getSessionById(id: number): Promise<SessionResponse | null> {
+    async getSessionById(id: number): Promise<SessionDto | null> {
         const session = await this.prisma.session.findUnique({
             where: { id },
             select: {
                 id: true,
                 date: true,
                 createdAt: true,
-                blocs: {
-                    select: {
-                        id: true,
-                        sessionId: true,
-                        difficulty: true,
-                        style: true,
-                        retry: true,
-                        terminate: true,
-                        createdAt: true
-                    },
-                    orderBy: { createdAt: 'asc' }
-                }
+                blocs: true,
             }
         })
 
-        return session
+        if (!session) return null
+
+        return this.convertSessionToDto(session)
     }
 
-    async createSession(sessionData: CreateSessionInput): Promise<SessionResponse> {
+    async createSession(sessionData: CreateSessionInput): Promise<SessionResponseBd> {
         return await this.prisma.session.create({
             data: {
                 date: sessionData.date
@@ -82,7 +81,7 @@ export class SessionService {
         })
     }
 
-    async updateSession(id: number, sessionData: UpdateSessionInput): Promise<SessionResponse | null> {
+    async updateSession(id: number, sessionData: UpdateSessionInput): Promise<SessionResponseBd | null> {
         try {
             return await this.prisma.session.update({
                 where: { id },
@@ -175,5 +174,36 @@ export class SessionService {
             },
             orderBy: { date: 'desc' }
         })
+    }
+
+    convertSessionsToDto(sessions: SessionResponseBd[]): SessionDto[] {
+        return sessions.map(session => this.convertSessionToDto(session))
+    }
+
+    convertSessionToDto(session: SessionResponseBd): SessionDto {
+        return {
+            id: session.id,
+            date: session.date,
+            sessionPerformance: session.blocs ? this.calculeSessionScore(session.blocs) : undefined
+        }
+    }
+
+    calculeSessionScore(blocs:BlocResponseDb[]) : SessionPerformance {
+        return {
+            nbBlocsDiff : blocs.length,
+            nbBlocsTerminates : blocs.filter(bloc => bloc.terminate).length,
+            nbBlocsTry : blocs.filter( bloc => bloc.retry > 0).length,
+            nbBlocsDE : blocs.filter( bloc => bloc.style === 'DE').length,
+            nbBlocsDA : blocs.filter( bloc => bloc.style === 'DA').length,
+            nbBlocsFlashed: blocs.filter(bloc => bloc.retry === 0 && bloc.terminate).length,
+            nbTry: blocs.reduce((sum, bloc) => sum + bloc.retry, 0),
+            nbTotalBlocs: blocs.length + blocs.reduce((sum, bloc) => sum + bloc.retry, 0),
+            difficultyMax: Math.max(...blocs.map(bloc => bloc.difficulty)),
+            difficultyMin: Math.min(...blocs.map(bloc => bloc.difficulty)),
+            averageDifficulty: blocs.reduce((sum, bloc) => sum + bloc.difficulty, 0) / blocs.length,
+            averageDifficultyTry : blocs.filter(bloc => bloc.retry > 0).reduce((sum, bloc) => sum + bloc.difficulty, 0) / blocs.filter(bloc => bloc.retry > 0).length,
+            averageDifficultyFlashed : blocs.filter(bloc => bloc.retry === 0 && bloc.terminate).reduce((sum, bloc) => sum + bloc.difficulty, 0) / blocs.filter(bloc => bloc.retry === 0 && bloc.terminate).length,
+            score: blocs.reduce((sum, bloc) => sum + BlocService.calculBlocScore(bloc), 0)
+        } as SessionPerformance;
     }
 }
