@@ -24,28 +24,28 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd /opt/back/mesBlocs-api-fastify
+          cd /opt/back/MesBlocs-api-fastify
           export PATH=/opt/nodejs/bin:$PATH
           npm ci
           echo "✅ Dependencies installed"
 
       - name: Generate Prisma client
         run: |
-          cd /opt/back/mesBlocs-api-fastify
+          cd /opt/back/MesBlocs-api-fastify
           export PATH=/opt/nodejs/bin:$PATH
           npm run db:generate
           echo "✅ Prisma client generated"
 
       - name: Run database migrations
         run: |
-          cd /opt/back/mesBlocs-api-fastify
+          cd /opt/back/MesBlocs-api-fastify
           export PATH=/opt/nodejs/bin:$PATH
           npm run db:push
           echo "✅ Database migrations applied"
 
       - name: Build TypeScript application
         run: |
-          cd /opt/back/mesBlocs-api-fastify
+          cd /opt/back/MesBlocs-api-fastify
           export PATH=/opt/nodejs/bin:$PATH
           
           # Build pour production
