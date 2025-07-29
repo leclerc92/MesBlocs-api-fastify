@@ -20,7 +20,7 @@ export interface SessionResponseBd {
 export interface SessionDto {
     id: number
     date: Date
-    sessionPerformance?: SessionPerformance;
+    performance?: SessionPerformance;
 }
 
 export interface SessionQuery {
@@ -36,3 +36,4 @@ export interface SessionStats {
     thisMonth: number
     totalBlocs: number
 }
+

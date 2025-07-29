@@ -29,8 +29,12 @@ declare module 'fastify' {
 
 // CORS simple
 fastify.register(import('@fastify/cors'), {
-    origin: true
+    origin: ['http://localhost:3000','http://mesblocs-api:3000'], // Remplacez par l'URL de votre frontend
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 })
+
 
 // Health check
 fastify.get('/health', async () => {

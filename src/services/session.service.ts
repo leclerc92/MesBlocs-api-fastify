@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import {
-    SessionQuery,
     CreateSessionInput,
     UpdateSessionInput,
     SessionResponseBd,
@@ -8,33 +7,16 @@ import {
     SessionDto
 } from "../models/session.model";
 import {SessionPerformance} from "../models/sessionPerformance.model";
-import {BlocDto, BlocResponseDb} from "../models/bloc.model";
+import {BlocResponseDb} from "../models/bloc.model";
 import {BlocService} from "./bloc.service";
 
 export class SessionService {
     constructor(private prisma: PrismaClient) {}
 
-    async getAllSessions(query: SessionQuery) {
-        const { page = 1, limit = 100, dateFrom, dateTo } = query
-        const skip = (page - 1) * limit
+    async getAllSessions() {
 
-        const where: any = {}
-        
-        if (dateFrom || dateTo) {
-            where.date = {}
-            if (dateFrom) {
-                where.date.gte = new Date(dateFrom)
-            }
-            if (dateTo) {
-                where.date.lte = new Date(dateTo)
-            }
-        }
-
-        const [sessions, total] = await Promise.all([
+        const [sessions] = await Promise.all([
             this.prisma.session.findMany({
-                where,
-                skip,
-                take: limit,
                 select: {
                     id: true,
                     date: true,
@@ -43,13 +25,11 @@ export class SessionService {
                 },
                 orderBy: { date: 'desc' }
             }),
-            this.prisma.session.count({ where })
+            this.prisma.session.count()
         ])
 
-        return {
-            data : this.convertSessionsToDto(sessions),
-            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
-        }
+        return this.convertSessionsToDto(sessions)
+
     }
 
     async getSessionById(id: number): Promise<SessionDto | null> {
@@ -184,7 +164,7 @@ export class SessionService {
         return {
             id: session.id,
             date: session.date,
-            sessionPerformance: session.blocs ? this.calculeSessionScore(session.blocs) : undefined
+            performance: session.blocs ? this.calculeSessionScore(session.blocs) : undefined
         }
     }
 

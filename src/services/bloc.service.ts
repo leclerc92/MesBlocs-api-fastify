@@ -6,9 +6,7 @@ export class BlocService {
     }
 
     async getAllBlocs(query: BlocQuery) {
-        const { page = 1, limit = 100, sessionId, difficulty, style } = query
-        const skip = (page - 1) * limit
-
+        const { sessionId, difficulty, style } = query
         const where: any = {}
         
         if (sessionId) {
@@ -23,11 +21,9 @@ export class BlocService {
             where.style = { contains: style }
         }
 
-        const [blocs, total] = await Promise.all([
+        const [blocs] = await Promise.all([
             this.prisma.bloc.findMany({
                 where,
-                skip,
-                take: limit,
                 select: {
                     id: true,
                     sessionId: true,
@@ -42,10 +38,8 @@ export class BlocService {
             this.prisma.bloc.count({ where })
         ])
 
-        return {
-            data: this.convertBlocsToDto(blocs),
-            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
-        }
+        return  this.convertBlocsToDto(blocs)
+
     }
 
     async getBlocById(id: number): Promise<BlocDto | null> {

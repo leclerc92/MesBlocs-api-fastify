@@ -12,7 +12,8 @@ export async function sessionRoutes(fastify: FastifyInstance) {
                 type: 'object',
                 properties: {
                     dateFrom: { type: 'string', format: 'date' },
-                    dateTo: { type: 'string', format: 'date' }
+                    dateTo: { type: 'string', format: 'date' },
+                    orderBy: { type: 'string', enum: ['date', 'difficulty', 'style', 'retry', 'terminate'] },
                 }
             }
         }
