@@ -19,7 +19,7 @@ export async function sessionRoutes(fastify: FastifyInstance) {
         }
     }, async (request, reply) => {
         try {
-            const result = await sessionService.getAllSessions(request.query as SessionQuery)
+            const result = await sessionService.getAllSessions()
             return result
         } catch (error: any) {
             fastify.log.error(error)
